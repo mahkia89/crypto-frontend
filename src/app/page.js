@@ -35,7 +35,8 @@ export default function Home() {
       if (!selectedCoin) return;  // If no coin is selected, return early
 
       try {
-        const chartResponse = await fetch(`http://127.0.0.1:8000/chart-image/${selectedCoin}`);
+        const chartResponse = await fetch(`https://your-backend-app.onrender.com
+/chart-image/${selectedCoin}`);
         if (!chartResponse.ok) {
           throw new Error('Failed to fetch chart');
         }
