@@ -3,24 +3,42 @@
 import { useEffect, useState } from 'react';
 import Sidebar from './components/Sidebar';
 
+const BACKEND_URL = "https://crypto-backend-3gse.onrender.com"; // backend url
+
 export default function Home() {
   const [cryptos, setCryptos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCoin, setSelectedCoin] = useState(null);
   const [chartUrl, setChartUrl] = useState(null);
 
-  // Fetch prices from API
+  // get price from fastapi
   useEffect(() => {
     const fetchPrices = async () => {
       try {
-        const response = await fetch('/api/cryptos');
+        const response = await fetch(`${BACKEND_URL}/stored-prices`); // data from fastapi
         if (!response.ok) {
           throw new Error('Failed to fetch data');
         }
-        const data = await response.json();
-        setCryptos(data);
+        const jsonData = await response.json();
+
+        if (jsonData.status === "success") {
+         
+          const formattedData = jsonData.data.reduce((acc, item) => {
+            if (!acc[item.symbol]) acc[item.symbol] = [];
+            acc[item.symbol].push({
+              price: item.price,
+              source: item.source,
+              timestamp: item.timestamp
+            });
+            return acc;
+          }, {});
+
+          setCryptos(formattedData);
+        } else {
+          console.error("Error fetching data:", jsonData.message);
+        }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
@@ -29,31 +47,29 @@ export default function Home() {
     fetchPrices();
   }, []);
 
-  // Fetch chart for selected coin
+  // get chart image from fastapi
   useEffect(() => {
     const fetchChart = async () => {
-      if (!selectedCoin) return;  // If no coin is selected, return early
+      if (!selectedCoin) return;
 
       try {
-        const chartResponse = await fetch(`https://your-backend-app.onrender.com
-/chart-image/${selectedCoin}`);
+        const chartResponse = await fetch(`${BACKEND_URL}/chart-image/${selectedCoin}`);
         if (!chartResponse.ok) {
-          throw new Error('Failed to fetch chart');
+          throw new Error("Failed to fetch chart");
         }
         const blob = await chartResponse.blob();
-        const url = URL.createObjectURL(blob);
-        setChartUrl(url);
+        setChartUrl(URL.createObjectURL(blob)); // chart img
       } catch (error) {
-        console.error('Error fetching chart:', error);
+        console.error("Error fetching chart:", error);
       }
     };
 
-    fetchChart();  // Run when selectedCoin changes
-  }, [selectedCoin]);  // Rerun when selectedCoin changes
+    fetchChart();
+  }, [selectedCoin]);
 
-  // Handle coin selection
+  // Click on coin
   const handleCoinSelect = (coin) => {
-    setSelectedCoin(coin);  // Set the selected coin
+    setSelectedCoin(coin);
   };
 
   return (
@@ -80,7 +96,7 @@ export default function Home() {
                   </div>
                 ))}
                 <button
-                  onClick={() => handleCoinSelect(crypto)}  // Select coin and fetch its chart
+                  onClick={() => handleCoinSelect(crypto)}
                   className="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
                 >
                   View Chart for {crypto}
@@ -90,7 +106,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* Display chart */}
+        {/* Chart */}
         {chartUrl && (
           <div className="mt-10 bg-white p-6 rounded-lg shadow-lg">
             <h2 className="text-3xl font-bold text-gray-800 mb-4">📊 Price Trend for {selectedCoin}</h2>
