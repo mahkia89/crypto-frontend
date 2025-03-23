@@ -2,7 +2,7 @@ import sqlite3 from 'sqlite3';
 import path from 'path';
 import { NextResponse } from 'next/server';
 
-const databasePath = path.resolve('/home/username/my_project/crypto_prices.db');
+const databasePath = path.resolve('/opt/render/project/src/crypto_prices.db');
 
 export async function GET() {
   try {
