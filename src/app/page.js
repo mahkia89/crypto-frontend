@@ -5,6 +5,82 @@ import Sidebar from './components/Sidebar';
 
 const BACKEND_URL = "https://crypto-backend-3gse.onrender.com"; // backend url
 
+// email setup
+import { useState } from "react";
+
+export default function Home() {
+
+  const [email, setEmail] = useState("");
+  const [selectedCurrency, setSelectedCurrency] = useState("BTC");
+  const [sending, setSending] = useState(false);
+
+  // email func to sent to backend
+  const handleSendEmail = async () => {
+    if (!email || !selectedCurrency) {
+      alert("Please add your email and your preffered currency");
+      return;
+    }
+
+    setSending(true);
+    try {
+      const response = await fetch(`${BACKEND_URL}/send-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, currency: selectedCurrency }),
+      });
+
+      const data = await response.json();
+      if (data.status === "success") {
+        alert("Enail has bee sent successfully!");
+      } else {
+        alert("Error in sending email " + data.message);
+      }
+    } catch (error) {
+      console.error("Error sending email:", error);
+      alert("An error accured");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="mt-10 bg-white p-6 rounded-lg shadow-lg">
+      <h2 className="text-3xl font-bold text-gray-800 mb-4">📩 Sending Email </h2>
+
+      <div className="flex flex-col gap-4">
+        {/* email field */}
+        <input
+          type="email"
+          placeholder="Please enter your email correctly"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="border p-2 rounded-lg w-full"
+        />
+
+        {/* اchose symbol */}
+        <select
+          value={selectedCurrency}
+          onChange={(e) => setSelectedCurrency(e.target.value)}
+          className="border p-2 rounded-lg w-full"
+        >
+          <option value="BTC">Bitcoin (BTC)</option>
+          <option value="ETH">Ethereum (ETH)</option>
+          <option value="USDT">Tether (USDT)</option>
+        </select>
+
+        {/* send button */}
+        <button
+          onClick={handleSendEmail}
+          disabled={sending}
+          className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+        >
+          {sending ? "Sending..." : "📨 Email"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [cryptos, setCryptos] = useState([]);
   const [loading, setLoading] = useState(true);
