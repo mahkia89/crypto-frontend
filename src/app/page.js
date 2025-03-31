@@ -6,6 +6,9 @@ import Sidebar from './components/Sidebar';
 const BACKEND_URL = "https://crypto-backend-3gse.onrender.com"; // backend url
 
 export default function Home() {
+  // Toggle state for dashboard and settings page
+  const [showSettings, setShowSettings] = useState(false);
+
   // Email alert states
   const [email, setEmail] = useState("");
   const [selectedCurrency, setSelectedCurrency] = useState("BTC");
@@ -116,75 +119,68 @@ export default function Home() {
       <div className="flex-1 p-8 bg-gray-100">
         <h1 className="text-4xl font-bold text-gray-800 mb-6">Crypto Dashboard</h1>
 
-        {/* Email Alert Setup */}
-        <div className="mt-10 bg-white p-6 rounded-lg shadow-lg">
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">📩 Set Email Alert </h2>
+        {/* Toggle Button */}
+        <button
+          onClick={() => setShowSettings(!showSettings)}
+          className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded mb-6"
+        >
+          {showSettings ? "Back to Dashboard" : "Go to Settings"}
+        </button>
 
-          <div className="flex flex-col gap-4">
-            {/* Email Input */}
-            <input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="border p-2 rounded-lg w-full"
-            />
-
-            {/* Choose Currency */}
-            <select
-              value={selectedCurrency}
-              onChange={(e) => setSelectedCurrency(e.target.value)}
-              className="border p-2 rounded-lg w-full"
-            >
-              <option value="BTC">Bitcoin (BTC)</option>
-              <option value="ETH">Ethereum (ETH)</option>
-              <option value="USDT">Tether (USDT)</option>
-            </select>
-
-            {/* Alert Threshold */}
-            <select
-              value={threshold}
-              onChange={(e) => setThreshold(Number(e.target.value))}
-              className="border p-2 rounded-lg w-full"
-            >
-              <option value={3}>Alert me if price drops more than 3%</option>
-              <option value={5}>Alert me if price drops more than 5%</option>
-            </select>
-
-            {/* Send Alert Button */}
-            <button
-              onClick={handleSendEmail}
-              disabled={sending}
-              className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
-            >
-              {sending ? "Sending..." : "📨 Set Alert"}
-            </button>
+        {/* If showSettings is false, display the main dashboard */}
+        {!showSettings ? (
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Welcome to the Crypto Dashboard!</h2>
+            <p className="text-gray-600">
+              Here you can view the latest cryptocurrency prices and trends. Check out the performance of Bitcoin, Ethereum, and more!
+            </p>
+            {/* Add more descriptive content about your dashboard here */}
           </div>
-        </div>
-
-        {/* Crypto Prices Section */}
-        {loading ? (
-          <p className="text-center text-xl text-gray-600">Loading...</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
-            {Object.keys(cryptos).map((crypto) => (
-              <div key={crypto} className="bg-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition duration-300">
-                <h2 className="text-2xl font-semibold text-gray-800">{crypto}</h2>
-                {cryptos[crypto].map((data, index) => (
-                  <div key={index} className="text-gray-700 mt-4">
-                    <p>💰 Price: ${data.price}</p>
-                    <p>📡 Source: {data.source}</p>
-                    <p>⏳ Timestamp: {data.timestamp}</p>
-                  </div>
-                ))}
-                <button
-                  onClick={() => handleCoinSelect(crypto)}
-                  className="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-                >
-                  View Chart for {crypto}
-                </button>
-              </div>
-            ))}
+          // If showSettings is true, display the settings page
+          <div className="mt-10 bg-white p-6 rounded-lg shadow-lg">
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">📩 Set Email Alert </h2>
+
+            <div className="flex flex-col gap-4">
+              {/* Email Input */}
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="border p-2 rounded-lg w-full"
+              />
+
+              {/* Choose Currency */}
+              <select
+                value={selectedCurrency}
+                onChange={(e) => setSelectedCurrency(e.target.value)}
+                className="border p-2 rounded-lg w-full"
+              >
+                <option value="BTC">Bitcoin (BTC)</option>
+                <option value="ETH">Ethereum (ETH)</option>
+                <option value="USDT">Tether (USDT)</option>
+              </select>
+
+              {/* Alert Threshold */}
+              <select
+                value={threshold}
+                onChange={(e) => setThreshold(Number(e.target.value))}
+                className="border p-2 rounded-lg w-full"
+              >
+                <option value={3}>Alert me if price drops more than 3%</option>
+                <option value={5}>Alert me if price drops more than 5%</option>
+              </select>
+
+              {/* Send Alert Button */}
+              <button
+                onClick={handleSendEmail}
+                disabled={sending}
+                className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+              >
+                {sending ? "Sending..." : "📨 Set Alert"}
+              </button>
+            </div>
           </div>
         )}
       </div>
