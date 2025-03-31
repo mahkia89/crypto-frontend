@@ -268,6 +268,7 @@ export default function Home() {
               <option value={5}>Alert me if price drops more than 5%</option>
             </select>
             <button
+              onClick={handleSendEmail}
               className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded mt-2"
             >
               Set Alert
@@ -277,9 +278,7 @@ export default function Home() {
   
  
         {/* Crypto Prices Section */}
-        {loading ? (
-          <p className="text-center text-xl text-gray-600">Loading...</p>
-        ) : (
+        {!loading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
             {Object.keys(cryptos).map((crypto) => (
               <div key={crypto} className="bg-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition duration-300">
