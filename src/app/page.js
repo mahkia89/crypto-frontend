@@ -16,6 +16,7 @@ export default function Home() {
   const [threshold, setThreshold] = useState(3); // Default 3%
   const [sending, setSending] = useState(false);
   const [imageEmail, setImageEmail] = useState("");
+  const [selectedMarketCurrency, setSelectedMarketCurrency] = useState("BTC");
 
   // Crypto states
   const [cryptos, setCryptos] = useState([]);
@@ -46,6 +47,61 @@ export default function Home() {
     fetchPrices();
   }, []);
 
+  // Send email alert
+  const handleSendEmail = async () => {
+    if (!email || !selectedCurrency) {
+      alert("Please enter your email and select a currency");
+      return;
+    }
+
+    setSending(true);
+    try {
+      const response = await fetch(`${BACKEND_URL}/set-email-alert`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, symbol: selectedCurrency, threshold }),
+      });
+
+      const data = await response.json();
+      if (data.status === "success") {
+        alert("Email alert has been set successfully!");
+      } else {
+        alert("Error setting email alert: " + data.message);
+      }
+    } catch (error) {
+      console.error("Error setting email alert:", error);
+      alert("An error occurred");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // Send market image email
+  const handleSendMarketEmail = async () => {
+    if (!imageEmail || !selectedMarketCurrency) {
+      alert("Please enter your email and select a currency");
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${BACKEND_URL}/send-chart-image`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: imageEmail, symbol: selectedMarketCurrency }),
+      });
+      
+      const data = await response.json();
+      if (data.status === "success") {
+        alert("Image has been sent to your email!");
+      } else {
+        alert("Error sending image: " + data.message);
+      }
+    } catch (error) {
+      console.error("Error sending image:", error);
+      alert("An error occurred");
+    }
+  };
+
   return (
     <div className={`flex min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'}`}>
       {/* Sidebar */}
@@ -57,6 +113,15 @@ export default function Home() {
       {/* Main Content */}
       <div className="flex-1 p-8">
         <h1 className="text-4xl font-bold mb-6">Crypto Dashboard</h1>
+
+        {view === "dashboard" && (
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Welcome to the Crypto Dashboard!</h2>
+            <p className="text-gray-600">
+              Here you can view the latest cryptocurrency prices and trends. Check out the performance of Bitcoin, Ethereum, and more!
+            </p>
+          </div>
+        )}
 
         {view !== "dashboard" && (
           <button
@@ -82,6 +147,15 @@ export default function Home() {
                 ))}
               </ul>
             )}
+            <select
+              value={selectedMarketCurrency}
+              onChange={(e) => setSelectedMarketCurrency(e.target.value)}
+              className="border p-2 rounded-lg w-full mt-2"
+            >
+              <option value="BTC">Bitcoin (BTC)</option>
+              <option value="ETH">Ethereum (ETH)</option>
+              <option value="USDT">Tether (USDT)</option>
+            </select>
             <input
               type="email"
               placeholder="Enter email to receive images"
@@ -89,7 +163,7 @@ export default function Home() {
               onChange={(e) => setImageEmail(e.target.value)}
               className="border p-2 rounded-lg w-full mt-4"
             />
-            <button className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded mt-2">
+            <button onClick={handleSendMarketEmail} className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded mt-2">
               Send Images to Email
             </button>
           </div>
@@ -109,33 +183,7 @@ export default function Home() {
               Dark Mode
             </label>
             <h3 className="text-2xl font-semibold mt-6">📩 Set Email Alert</h3>
-            <input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="border p-2 rounded-lg w-full mt-2"
-            />
-            <select
-              value={selectedCurrency}
-              onChange={(e) => setSelectedCurrency(e.target.value)}
-              className="border p-2 rounded-lg w-full mt-2"
-            >
-              <option value="BTC">Bitcoin (BTC)</option>
-              <option value="ETH">Ethereum (ETH)</option>
-              <option value="USDT">Tether (USDT)</option>
-            </select>
-            <select
-              value={threshold}
-              onChange={(e) => setThreshold(Number(e.target.value))}
-              className="border p-2 rounded-lg w-full mt-2"
-            >
-              <option value={3}>Alert me if price drops more than 3%</option>
-              <option value={5}>Alert me if price drops more than 5%</option>
-            </select>
-            <button
-              className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded mt-2"
-            >
+            <button onClick={handleSendEmail} className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded mt-2">
               Set Alert
             </button>
           </div>
