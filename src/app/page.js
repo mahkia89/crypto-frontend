@@ -29,7 +29,7 @@ export default function Home() {
       const response = await fetch(`${BACKEND_URL}/send-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, currency: selectedCurrency }),
+        body: JSON.stringify({ email, symbol: selectedCurrency }), // تغییر نام فیلد
       });
 
       const data = await response.json();
@@ -45,6 +45,7 @@ export default function Home() {
       setSending(false);
     }
   };
+
 
   // Fetch crypto prices
   useEffect(() => {
