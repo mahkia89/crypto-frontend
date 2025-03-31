@@ -1,13 +1,13 @@
 import Link from 'next/link';
 
-export default function Sidebar({ onMarketClick, onSettingsClick }) {
+export default function Sidebar({ setView }) {
     return (
       <div className="w-64 h-screen bg-gray-800 text-white p-5">
         <h2 className="text-2xl font-bold mb-5">Dashboard</h2>
         <ul>
           <li>
             <button 
-              onClick={onMarketClick} 
+              onClick={() => setView("market")} 
               className="w-full py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded cursor-pointer text-left"
             >
               📊 Market
@@ -15,7 +15,7 @@ export default function Sidebar({ onMarketClick, onSettingsClick }) {
           </li>
           <li className="mt-2">
             <button 
-              onClick={onSettingsClick} 
+              onClick={() => setView("settings")} 
               className="w-full py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded cursor-pointer text-left"
             >
               ⚙️ Settings
