@@ -9,6 +9,7 @@ export default function Home() {
   // Email states
   const [email, setEmail] = useState("");
   const [selectedCurrency, setSelectedCurrency] = useState("BTC");
+  const [view, setView] = useState("dashboard"); // Initialize view state
   const [sending, setSending] = useState(false);
 
   // Crypto states
@@ -16,6 +17,11 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [selectedCoin, setSelectedCoin] = useState(null);
   const [chartUrl, setChartUrl] = useState(null);
+
+  const [darkMode, setDarkMode] = useState(false);
+  const [threshold, setThreshold] = useState(3);
+
+
 
   // email func to send to backend
   const handleSendEmail = async () => {
@@ -78,12 +84,34 @@ export default function Home() {
         setLoading(false);
       }
     };
-
     fetchPrices();
   }, []);
 
+
+  // Fetch email alert settings when email is set
+  useEffect(() => {
+    if (!email) return;
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch(`${BACKEND_URL}/get-settings/${email}`);
+        if (!response.ok) throw new Error("Failed to fetch settings");
+        const data = await response.json();
+        if (data.status === "success") {
+          setEmail(data.data.email);
+          setSelectedCurrency(data.data.symbol);
+        } else {
+          console.error("Error fetching settings:", data.message);
+        }
+      } catch (error) {
+        console.error("Error fetching settings:", error);
+      }
+    };
+    fetchSettings();
+  }, [email]);
+
   // Fetch chart image
   useEffect(() => {
+    if (!selectedCoin || chartUrl) return;
     const fetchChart = async () => {
       if (!selectedCoin) return;
 
@@ -98,7 +126,6 @@ export default function Home() {
         console.error("Error fetching chart:", error);
       }
     };
-
     fetchChart();
   }, [selectedCoin]);
 
@@ -111,14 +138,39 @@ export default function Home() {
     <div className="flex min-h-screen">
       {/* Sidebar */}
       <Sidebar />
+      
 
       {/* Main Content */}
-      <div className="flex-1 p-8 bg-gray-100">
-        <h1 className="text-4xl font-bold text-gray-800 mb-6">Crypto Dashboard</h1>
+      <div className="flex-1 p-8">
+        <h1 className="text-4xl font-bold mb-6">Crypto Dashboard</h1>
 
-        {/* Email Sending Section */}
-        <div className="mt-10 bg-white p-6 rounded-lg shadow-lg">
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">📩 Sending Email </h2>
+        {view === "dashboard" && (
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Welcome to the Crypto Dashboard!</h2>
+            <p className="text-gray-600">
+              Here you can view the latest cryptocurrency prices and trends. Check out the performance of Bitcoin, Ethereum, and more!
+            </p>
+          </div>
+        )}
+
+        {view !== "dashboard" && (
+          <button
+            onClick={() => setView("dashboard")}
+            className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded mb-6"
+          >
+            Back to Dashboard
+          </button>
+        )}
+        </div>
+
+       {/* Market View */}
+       {view === "market" && (
+            <div>
+                <h2 className="text-3xl font-bold mb-4">📈 Market Prices</h2>
+                <p className="text-gray-600 mb-4">Here you can view the latest cryptocurrency prices and trends.</p>
+            {/* Email Sending Section */}
+            <div className="mt-10 bg-white p-6 rounded-lg shadow-lg">
+                <h2 className="text-3xl font-bold text-gray-800 mb-4">📩 Sending Email </h2>
 
           <div className="flex flex-col gap-4">
             {/* Email Field */}
@@ -151,7 +203,57 @@ export default function Home() {
             </button>
           </div>
         </div>
+        </div>
+        )}
 
+
+        {/* Settings View */}
+        {view === "settings" && (
+          <div className="mt-10 bg-white p-6 rounded-lg shadow-lg">
+            <h2 className="text-3xl font-bold mb-4">⚙️ Settings</h2>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={darkMode}
+                onChange={() => setDarkMode(!darkMode)}
+                className="mr-2"
+              />
+              Dark Mode
+            </label>
+            <h3 className="text-2xl font-semibold mt-6">📩 Set Email Alert</h3>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="border p-2 rounded-lg w-full mt-2"
+            />
+            <select
+              value={selectedCurrency}
+              onChange={(e) => setSelectedCurrency(e.target.value)}
+              className="border p-2 rounded-lg w-full mt-2"
+            >
+              <option value="BTC">Bitcoin (BTC)</option>
+              <option value="ETH">Ethereum (ETH)</option>
+              <option value="USDT">Tether (USDT)</option>
+            </select>
+            <select
+              value={threshold}
+              onChange={(e) => setThreshold(Number(e.target.value))}
+              className="border p-2 rounded-lg w-full mt-2"
+            >
+              <option value={3}>Alert me if price drops more than 3%</option>
+              <option value={5}>Alert me if price drops more than 5%</option>
+            </select>
+            <button
+              className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded mt-2"
+            >
+              Set Alert
+            </button>
+          </div>
+        )}
+  
+ 
         {/* Crypto Prices Section */}
         {loading ? (
           <p className="text-center text-xl text-gray-600">Loading...</p>
@@ -186,6 +288,5 @@ export default function Home() {
           </div>
         )}
       </div>
-    </div>
   );
 }
