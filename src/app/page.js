@@ -137,9 +137,10 @@ export default function Home() {
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
-      <Sidebar />
-      
+      <Sidebar setView={setView} />
 
+    
+      
       {/* Main Content */}
       <div className="flex-1 p-8">
         <h1 className="text-4xl font-bold mb-6">Crypto Dashboard</h1>
@@ -153,6 +154,25 @@ export default function Home() {
           </div>
         )}
 
+        {view === "market" && (
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">📈 Market View</h2>
+            <p className="text-gray-600">
+              View real-time cryptocurrency prices and compare trends across different exchanges.
+            </p>
+         </div>
+        )}
+
+        {view === "settings" && (
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">⚙️ Settings</h2>
+            <p className="text-gray-600">
+              Adjust your preferences, set price alerts, and customize your dashboard experience.
+            </p>
+          </div>
+        )}
+  
+
         {view !== "dashboard" && (
           <button
             onClick={() => setView("dashboard")}
@@ -162,6 +182,8 @@ export default function Home() {
           </button>
         )}
         </div>
+
+  
 
        {/* Market View */}
        {view === "market" && (
