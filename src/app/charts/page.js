@@ -1,10 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Charts() {
   const [selectedCoin, setSelectedCoin] = useState(null);
+  const [chartUrl, setChartUrl] = useState(null);
+  const BACKEND_URL = "https://crypto-backend-3gse.onrender.com";
   const coins = ['BTC', 'ETH', 'DOGE'];
+
+  useEffect(() => {
+    if (!selectedCoin) return;
+
+    console.log("Fetching chart for:", selectedCoin); // Debugging log
+
+    fetch(`${BACKEND_URL}/chart-image/${selectedCoin}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to fetch chart: ${response.status}`);
+        }
+        return response.blob();
+      })
+      .then(blob => {
+        console.log("Fetched chart successfully"); // Debugging log
+        setChartUrl(URL.createObjectURL(blob));
+      })
+      .catch(error => console.error("Error fetching chart:", error));
+  }, [selectedCoin]);
 
   return (
     <div className="p-5">
@@ -26,11 +47,11 @@ export default function Charts() {
       </div>
 
       {/* نمایش نمودار مربوط به کوین انتخاب شده */}
-      {selectedCoin && (
+      {selectedCoin && chartUrl && (
         <div>
-          <h2 className="text-xl font-bold mb-3">{selectedCoin } Chart</h2>
+          <h2 className="text-xl font-bold mb-3">{selectedCoin} Chart</h2>
           <img
-            src={`http://127.0.0.1:8000/chart-image/${selectedCoin}?symbol=${selectedCoin}`}
+            src={chartUrl}
             alt={`${selectedCoin} Chart`}
             className="border rounded shadow-lg"
           />
