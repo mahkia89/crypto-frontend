@@ -6,9 +6,10 @@ import Sidebar from './components/Sidebar';
 const BACKEND_URL = "https://crypto-backend-3gse.onrender.com"; // backend url
 
 export default function Home() {
-  // Email states
+  // Email alert states
   const [email, setEmail] = useState("");
   const [selectedCurrency, setSelectedCurrency] = useState("BTC");
+  const [threshold, setThreshold] = useState(3); // Default 3%
   const [sending, setSending] = useState(false);
 
   // Crypto states
@@ -17,35 +18,34 @@ export default function Home() {
   const [selectedCoin, setSelectedCoin] = useState(null);
   const [chartUrl, setChartUrl] = useState(null);
 
-  // email func to send to backend
+  // Send email alert setup to backend
   const handleSendEmail = async () => {
     if (!email || !selectedCurrency) {
-      alert("Please add your email and your preferred currency");
+      alert("Please enter your email and select a currency");
       return;
     }
 
     setSending(true);
     try {
-      const response = await fetch(`${BACKEND_URL}/send-email`, {
+      const response = await fetch(`${BACKEND_URL}/set-email-alert`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, symbol: selectedCurrency }), // تغییر نام فیلد
+        body: JSON.stringify({ email, symbol: selectedCurrency, threshold }),
       });
 
       const data = await response.json();
       if (data.status === "success") {
-        alert("Email has been sent successfully!");
+        alert("Email alert has been set successfully!");
       } else {
-        alert("Error in sending email: " + data.message);
+        alert("Error setting email alert: " + data.message);
       }
     } catch (error) {
-      console.error("Error sending email:", error);
+      console.error("Error setting email alert:", error);
       alert("An error occurred");
     } finally {
       setSending(false);
     }
   };
-
 
   // Fetch crypto prices
   useEffect(() => {
@@ -102,7 +102,7 @@ export default function Home() {
     fetchChart();
   }, [selectedCoin]);
 
-  // Click on coin
+  // Select coin
   const handleCoinSelect = (coin) => {
     setSelectedCoin(coin);
   };
@@ -116,21 +116,21 @@ export default function Home() {
       <div className="flex-1 p-8 bg-gray-100">
         <h1 className="text-4xl font-bold text-gray-800 mb-6">Crypto Dashboard</h1>
 
-        {/* Email Sending Section */}
+        {/* Email Alert Setup */}
         <div className="mt-10 bg-white p-6 rounded-lg shadow-lg">
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">📩 Sending Email </h2>
+          <h2 className="text-3xl font-bold text-gray-800 mb-4">📩 Set Email Alert </h2>
 
           <div className="flex flex-col gap-4">
-            {/* Email Field */}
+            {/* Email Input */}
             <input
               type="email"
-              placeholder="Please enter your email correctly"
+              placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="border p-2 rounded-lg w-full"
             />
 
-            {/* Choose symbol */}
+            {/* Choose Currency */}
             <select
               value={selectedCurrency}
               onChange={(e) => setSelectedCurrency(e.target.value)}
@@ -141,13 +141,23 @@ export default function Home() {
               <option value="USDT">Tether (USDT)</option>
             </select>
 
-            {/* Send button */}
+            {/* Alert Threshold */}
+            <select
+              value={threshold}
+              onChange={(e) => setThreshold(Number(e.target.value))}
+              className="border p-2 rounded-lg w-full"
+            >
+              <option value={3}>Alert me if price drops more than 3%</option>
+              <option value={5}>Alert me if price drops more than 5%</option>
+            </select>
+
+            {/* Send Alert Button */}
             <button
               onClick={handleSendEmail}
               disabled={sending}
               className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
             >
-              {sending ? "Sending..." : "📨 Email"}
+              {sending ? "Sending..." : "📨 Set Alert"}
             </button>
           </div>
         </div>
@@ -175,14 +185,6 @@ export default function Home() {
                 </button>
               </div>
             ))}
-          </div>
-        )}
-
-        {/* Chart Section */}
-        {chartUrl && (
-          <div className="mt-10 bg-white p-6 rounded-lg shadow-lg">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">📊 Price Trend for {selectedCoin}</h2>
-            <img src={chartUrl} alt="Crypto Price Chart" className="w-full max-w-3xl border rounded-lg" />
           </div>
         )}
       </div>
