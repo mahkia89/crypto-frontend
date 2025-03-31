@@ -1,194 +1,143 @@
 'use client';
+import { useState, useEffect } from 'react';
 
-import { useEffect, useState } from 'react';
-import Sidebar from './components/Sidebar';
-
-const BACKEND_URL = "https://crypto-backend-3gse.onrender.com"; // backend url
-
-export default function Home() {
-  // Toggle state for dashboard views
-  const [view, setView] = useState("dashboard");
-  const [darkMode, setDarkMode] = useState(false);
-
-  // Email alert states
+export default function Charts() {
+  const [selectedCoin, setSelectedCoin] = useState(null);
+  const [chartUrl, setChartUrl] = useState(null);
   const [email, setEmail] = useState("");
-  const [selectedCurrency, setSelectedCurrency] = useState("BTC");
-  const [threshold, setThreshold] = useState(3); // Default 3%
-  const [sending, setSending] = useState(false);
-  const [imageEmail, setImageEmail] = useState("");
-  const [selectedMarketCurrency, setSelectedMarketCurrency] = useState("BTC");
+  const [isSending, setIsSending] = useState(false);
+  const BACKEND_URL = "https://crypto-backend-3gse.onrender.com"; // Your backend URL
+  const coins = ['BTC', 'ETH', 'DOGE'];
 
-  // Crypto states
-  const [cryptos, setCryptos] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // Fetch crypto prices
   useEffect(() => {
-    const fetchPrices = async () => {
-      try {
-        const response = await fetch(`${BACKEND_URL}/stored-prices`);
+    if (!selectedCoin) return;
+
+    console.log("Fetching chart for:", selectedCoin); // Debugging log
+
+    fetch(`${BACKEND_URL}/chart-image/${selectedCoin}`)
+      .then(response => {
         if (!response.ok) {
-          throw new Error("Failed to fetch data");
+          throw new Error(`Failed to fetch chart: ${response.status}`);
         }
-        const jsonData = await response.json();
+        return response.blob();
+      })
+      .then(blob => {
+        console.log("Fetched chart successfully"); // Debugging log
+        setChartUrl(URL.createObjectURL(blob));
+      })
+      .catch(error => console.error("Error fetching chart:", error));
+  }, [selectedCoin]);
 
-        if (jsonData.status === "success") {
-          setCryptos(jsonData.data.slice(0, 3)); // Show 3 top coins
-        } else {
-          console.error("Error fetching data:", jsonData.message);
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPrices();
-  }, []);
-
-  // Send email alert
   const handleSendEmail = async () => {
-    if (!email || !selectedCurrency) {
-      alert("Please enter your email and select a currency");
-      return;
-    }
+    if (!email || !selectedCoin) return;
 
-    setSending(true);
+    setIsSending(true);
     try {
-      const response = await fetch(`${BACKEND_URL}/set-email-alert`, {
+      const response = await fetch(`${BACKEND_URL}/send-email`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, symbol: selectedCurrency, threshold }),
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, symbol: selectedCoin })
       });
 
-      const data = await response.json();
-      if (data.status === "success") {
-        alert("Email alert has been set successfully!");
-      } else {
-        alert("Error setting email alert: " + data.message);
+      if (!response.ok) {
+        throw new Error(`Failed to send email: ${response.status}`);
       }
+
+      alert("Email sent successfully!");
     } catch (error) {
-      console.error("Error setting email alert:", error);
-      alert("An error occurred");
+      console.error("Error sending email:", error);
+      alert("Failed to send email.");
     } finally {
-      setSending(false);
+      setIsSending(false);
     }
   };
 
-  // Send market image email
-  const handleSendMarketEmail = async () => {
-    if (!imageEmail || !selectedMarketCurrency) {
-      alert("Please enter your email and select a currency");
+  const handleSetEmailAlert = async () => {
+    if (!email || !selectedCoin) {
+      alert("Please enter your email and select a coin");
       return;
     }
-    
+
     try {
-      const response = await fetch(`${BACKEND_URL}/send-chart-image`, {
+      const response = await fetch(`${BACKEND_URL}/save-settings`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: imageEmail, symbol: selectedMarketCurrency }),
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email,
+          symbol: selectedCoin,
+          price_drop_threshold: 3, // Set your price drop threshold here
+          dark_mode: false, // If you want to include dark mode
+        })
       });
-      
+
       const data = await response.json();
       if (data.status === "success") {
-        alert("Image has been sent to your email!");
+        alert("Settings saved successfully!");
       } else {
-        alert("Error sending image: " + data.message);
+        alert("Error saving settings: " + data.message);
       }
     } catch (error) {
-      console.error("Error sending image:", error);
+      console.error("Error saving settings:", error);
       alert("An error occurred");
     }
   };
 
   return (
-    <div className={`flex min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'}`}>
-      {/* Sidebar */}
-      <Sidebar 
-        onMarketClick={() => setView("market")} 
-        onSettingsClick={() => setView("settings")} 
-      />
+    <div className="p-5">
+      <h1 className="text-2xl font-bold mb-5">Select a Coin</h1>
 
-      {/* Main Content */}
-      <div className="flex-1 p-8">
-        <h1 className="text-4xl font-bold mb-6">Crypto Dashboard</h1>
-
-        {view === "dashboard" && (
-          <div>
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Welcome to the Crypto Dashboard!</h2>
-            <p className="text-gray-600">
-              Here you can view the latest cryptocurrency prices and trends. Check out the performance of Bitcoin, Ethereum, and more!
-            </p>
-          </div>
-        )}
-
-        {view !== "dashboard" && (
+      {/* Coin selection buttons */}
+      <div className="flex space-x-4 mb-5">
+        {coins.map((coin) => (
           <button
-            onClick={() => setView("dashboard")}
-            className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded mb-6"
+            key={coin}
+            className={`py-2 px-4 rounded ${
+              selectedCoin === coin ? 'bg-blue-700' : 'bg-gray-500'
+            } text-white`}
+            onClick={() => setSelectedCoin(coin)}
           >
-            Back to Dashboard
+            {coin}
           </button>
-        )}
+        ))}
+      </div>
 
-        {/* Market View */}
-        {view === "market" && (
-          <div>
-            <h2 className="text-3xl font-bold mb-4">📈 Market Prices</h2>
-            {loading ? (
-              <p>Loading...</p>
-            ) : (
-              <ul>
-                {cryptos.map((coin, index) => (
-                  <li key={index} className="mb-2">
-                    {coin.symbol}: ${coin.price.toFixed(2)}
-                  </li>
-                ))}
-              </ul>
-            )}
-            <select
-              value={selectedMarketCurrency}
-              onChange={(e) => setSelectedMarketCurrency(e.target.value)}
-              className="border p-2 rounded-lg w-full mt-2"
-            >
-              <option value="BTC">Bitcoin (BTC)</option>
-              <option value="ETH">Ethereum (ETH)</option>
-              <option value="USDT">Tether (USDT)</option>
-            </select>
+      {/* Display chart for selected coin */}
+      {selectedCoin && chartUrl && (
+        <div>
+          <h2 className="text-xl font-bold mb-3">{selectedCoin} Chart</h2>
+          <img
+            src={chartUrl}
+            alt={`${selectedCoin} Chart`}
+            className="border rounded shadow-lg mb-4"
+          />
+          <div className="flex flex-col space-y-3">
             <input
               type="email"
-              placeholder="Enter email to receive images"
-              value={imageEmail}
-              onChange={(e) => setImageEmail(e.target.value)}
-              className="border p-2 rounded-lg w-full mt-4"
+              placeholder="Enter email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="p-2 border rounded"
             />
-            <button onClick={handleSendMarketEmail} className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded mt-2">
-              Send Images to Email
+            <button
+              onClick={handleSendEmail}
+              className="py-2 px-4 bg-green-600 text-white rounded disabled:opacity-50"
+              disabled={isSending}
+            >
+              {isSending ? "Sending..." : "Send Chart via Email"}
+            </button>
+            <button
+              onClick={handleSetEmailAlert}
+              className="py-2 px-4 bg-blue-600 text-white rounded"
+            >
+              Set Email Alert
             </button>
           </div>
-        )}
-
-        {/* Settings View */}
-        {view === "settings" && (
-          <div className="mt-10 bg-white p-6 rounded-lg shadow-lg">
-            <h2 className="text-3xl font-bold mb-4">⚙️ Settings</h2>
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={darkMode}
-                onChange={() => setDarkMode(!darkMode)}
-                className="mr-2"
-              />
-              Dark Mode
-            </label>
-            <h3 className="text-2xl font-semibold mt-6">📩 Set Email Alert</h3>
-            <button onClick={handleSendEmail} className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded mt-2">
-              Set Alert
-            </button>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
