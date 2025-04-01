@@ -17,8 +17,6 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [selectedCoin, setSelectedCoin] = useState(null);
   const [chartUrl, setChartUrl] = useState(null);
-
-  const [darkMode, setDarkMode] = useState(false);
   const [threshold, setThreshold] = useState(3);
 
 
@@ -234,13 +232,6 @@ export default function Home() {
           <div className="mt-10 bg-white p-6 rounded-lg shadow-lg">
             <h2 className="text-3xl font-bold mb-4">⚙️ Settings</h2>
             <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={darkMode}
-                onChange={() => setDarkMode(!darkMode)}
-                className="mr-2"
-              />
-              Dark Mode
             </label>
             <h3 className="text-2xl font-semibold mt-6">📩 Set Email Alert</h3>
             <input
