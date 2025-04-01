@@ -87,16 +87,6 @@ export default function Home() {
     fetchPrices();
   }, []);
 
-  // darkmood
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [darkMode]);
-
-
 
   // Fetch email alert settings when email is set
   useEffect(() => {
@@ -145,7 +135,7 @@ export default function Home() {
   };
 
   return (
-    <div className={`flex min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-black'}`}>
+    <div className="flex min-h-screen bg-white text-black">
       {/* Sidebar */}
       <Sidebar setView={setView} />
 
