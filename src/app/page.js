@@ -185,7 +185,7 @@ export default function Home() {
 
        {/* Market View */}
        {view === "market" && (
-            <div className="mt-10">
+            <div className="mt-10 max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg">
                 <h2 className="text-3xl font-bold mb-4">📈 Market Prices</h2>
                 <p className="text-gray-600 mb-4">Here you can view the latest cryptocurrency prices and trends.</p>
             {/* Email Sending Section */}
