@@ -1,6 +1,3 @@
-Sure! Below is the modified README for the **frontend** project, with the additional sections and the backend link included:
-
----
 
 # Crypto Dashboard - Frontend
 
